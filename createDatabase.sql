@@ -12,6 +12,14 @@ CREATE TABLE posts (
     p_id            INTEGER(10000) NOT NULL
 );
 
+CREATE TABLE replies (
+    r_contents      VARCHAR(255) NOT NULL,
+    r_date          CHAR(100) NOT NULL,
+    r_author        CHAR(100) NOT NULL,
+    r_id            INTEGER(10000) NOT NULL,
+    r_repID         INTEGER(10000) NOT NULL
+);
+
 .mode "csv"
 .separator ","
 .headers off

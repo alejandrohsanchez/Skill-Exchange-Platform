@@ -10,6 +10,254 @@ import sys
 app = Flask(__name__)
 app.secret_key = 'privateUser'
 
+@app.route('/submitReply', methods = ['POST', 'GET'])
+def submitReply():
+    if (request.method == 'POST'):
+        method = request.form['submit']
+        postID = eval(method)
+        postUsername = session.pop('nameID')
+        session['nameID'] = postUsername
+        database = r"data.sqlite"
+        conn = sqlite3.connect(database)
+        cur = conn.cursor()
+        
+        cur.execute(f"""
+                        SELECT
+                            r_repID
+                        FROM
+                            replies
+                        WHERE
+                            r_id = {postID}
+                        """)
+        prevIDs = cur.fetchall()
+        newID = 0
+        status = "Failed"
+        while(True):
+            if (prevIDs):
+                # Check if newly generated ID exists in previous replies
+                for val in prevIDs:
+                    if newID == val[0]:
+                        status = "Failed"
+                        break
+                    else:
+                        status = "Success"
+                if (status == "Failed"):
+                    newID = newID + 1
+                else:
+                    break
+            else:
+                status = "Success"
+                break
+            if newID > 9999:
+                break
+        
+        # Contents of the message
+        entry = request.form['message']
+        todaysDate = date.today()
+        # pop is used to get username/author name
+        # post ID is r_id
+        
+        cur.execute(f"""
+                    INSERT INTO replies (r_contents, r_date, r_author, r_id, r_repID)
+                    VALUES ("{entry}", "{todaysDate}", "{postUsername}", "{postID}", "{newID}");
+                    """)
+        conn.commit()
+        
+        
+        
+        cur.execute(f"""
+                    SELECT
+                        p_title,
+                        p_contents,
+                        p_date,
+                        p_username,
+                        p_id
+                    FROM
+                        posts
+                    """)
+        data = cur.fetchall()
+        result = []
+        if (data):
+            for row in data:
+                postTitle = row[0]
+                postContents = row[1]
+                postDate = row[2]
+                postUsername = row[3]
+                postID = row[4]
+                result.append(f"""
+                            <div class = "entry">
+                                <h3>{postTitle}</h3>
+                                <table>
+                                    <tr>
+                                        <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                    </tr>
+                                </table>
+                                <p>{postContents}</p>
+                                <form action = "/replyHandler" method = "POST">
+                                    <button type="submit" name="reply" value={postID}>Comment</button>
+                                </form>
+                            </div>""")
+        else:
+            result.append("<p>No activity yet.. Start a conversation!</p>")
+        contents = ''
+        for i in result:
+            contents = (i + '\n') + contents
+            
+        activeUser = session.pop('nameID')
+        session['nameID'] = activeUser
+        return render_template_string("""
+                                    {% extends "forumMain.html" %}
+                                    
+                                    {% block welcome %}
+                                    <h2>Welcome {{name}}!</h2>
+                                    {% endblock %}
+                                    
+                                    {% block oldPost %}
+                                    {% autoescape off %}
+                                    {{string2html}}
+                                    {% endautoescape %}
+                                    {% endblock %}
+                                    """, string2html = contents, name = activeUser)
+        
+
+@app.route('/replyHandler', methods = ['POST', 'GET'])
+def replyHandler():
+    if (request.method == 'POST'):
+        # method will be equal to the postID
+        method = request.form['reply']
+        postKey = eval(method)
+        postUsername = session.pop('nameID')
+        session['nameID'] = postUsername
+        database = r"data.sqlite"
+        conn = sqlite3.connect(database)
+        cur = conn.cursor() 
+        cur.execute(f"""
+                    SELECT
+                        p_title,
+                        p_contents,
+                        p_date,
+                        p_username,
+                        p_id
+                    FROM
+                        posts
+                    """)
+        data = cur.fetchall()
+        
+        # Get the reply section of the post that was selected.
+        replyResult = []
+        cur.execute(f"""
+            SELECT
+                r_contents,
+                r_date,
+                r_author,
+                r_id,
+                r_repID
+            FROM
+                replies
+            WHERE
+                r_id = {postKey}
+            """)
+        replyData = cur.fetchall()
+        
+        if (replyData):
+            for i in replyData:
+                replyContents = i[0]
+                replyDate = i[1]
+                replyAuthor = i[2]
+                replyResult.append(f"""
+                                    <table id="replies">
+                                        <tr>
+                                            <td><em>{replyAuthor}</em> | <em>Posted: {replyDate}</em></td>
+                                        </tr>
+                                        <tr>
+                                            <td>{replyContents}</td>
+                                        </tr>
+                                    </table>
+                                    """)
+        else:
+            replyResult.append("No comments available. Be the first to join the discussion!")
+        
+        result = []
+        if (data):
+            for row in data:
+                postTitle = row[0]
+                postContents = row[1]
+                postDate = row[2]
+                postUsername = row[3]
+                postID = row[4]
+                
+                print(postKey+1)
+                if (postID == postKey):
+                    replyString = ""
+                    # Get the replies into a string with the newest tables in front
+                    for i in replyResult:
+                        replyString = (i + '\n') + replyString
+                        # Div is to ensure that the comments are wrapped as part of the post.
+                    replyString += "</div>"
+                    
+                    # Collect the post into a string
+                    post2append =f"""
+                                <div class = "entry">
+                                    <h3>{postTitle}</h3>
+                                    <table>
+                                        <tr>
+                                            <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                        </tr>
+                                    </table>
+                                    <p>{postContents}</p>
+                                    <form action = "/replyHandler" method = "POST">
+                                        <button type="submit" name="reply" value={postID}>Comment</button>
+                                    </form> 
+                                    <form action = "/submitReply" method="POST">
+                                        <table>
+                                            <tr>
+                                                <td><textarea type="text" name="message" id="txtbox"></textarea></td>
+                                            </tr>
+                                            <tr>
+                                                <td><button type="submit" name="submit" value={postKey}>Reply</button></td>
+                                            </tr>
+                                        </table>
+                                    </form>
+                                        
+                                """
+                                # Div is in the replyString
+                    # Combine the post string and the reply string
+                    post2append += replyString
+                    result.append(post2append)
+                    
+                else:
+                    result.append(f"""
+                                <div class = "entry">
+                                    <h3>{postTitle}</h3>
+                                    <table>
+                                        <tr>
+                                            <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                        </tr>
+                                    </table>
+                                    <p>{postContents}</p>
+                                    <form action = "/replyHandler" method = "POST">
+                                        <button type="submit" name="reply" value={postID}>Comment</button>
+                                    </form>
+                                </div>""")
+            contents = ""
+            for i in result:
+                contents = (i + "\n") + contents
+            
+            return render_template_string("""
+                                            {% extends "forumMain.html" %}
+                                            
+                                            {% block welcome %}
+                                            <h2>Welcome {{name}}!</h2>
+                                            {% endblock %}
+                                            
+                                            {% block oldPost %}
+                                            {% autoescape off %}
+                                            {{string2html}}
+                                            {% endautoescape %}
+                                            {% endblock %}
+                                            """, string2html = contents, name = postUsername)
+            
+
 @app.route('/createUser', methods = ['POST', 'GET'])
 def createUser():
     if (request.method == 'POST'):
@@ -124,7 +372,24 @@ def handleNewPost():
                 result = []
                 if (data):
                     for row in data:
-                        result.append(f"""<table><tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td></table>""")
+                        postTitle = row[0]
+                        postContents = row[1]
+                        postDate = row[2]
+                        postUsername = row[3]
+                        postID = row[4]
+                        result.append(f"""
+                                    <div class = "entry">
+                                        <h3>{postTitle}</h3>
+                                        <table>
+                                            <tr>
+                                                <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                            </tr>
+                                        </table>
+                                        <p>{postContents}</p>
+                                        <form action = "/replyHandler" method = "POST">
+                                            <button type="submit" name="reply" value={postID}>Comment</button>
+                                        </form>
+                                    </div>""")
                 else:
                     result.append("<p>No activity yet.. Start a conversation!</p>")
                 contents = ''
@@ -134,7 +399,7 @@ def handleNewPost():
                 return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
-                                            {% block newPost %}
+                                            {% block welcome %}
                                             <h2>Welcome {{name}}!</h2>
                                             <p>Your message has been posted.</p>
                                             {% endblock %}
@@ -160,7 +425,24 @@ def handleNewPost():
                 result = []
                 if (data):
                     for row in data:
-                        result.append(f"""<table><tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td></table>""")
+                        postTitle = row[0]
+                        postContents = row[1]
+                        postDate = row[2]
+                        postUsername = row[3]
+                        postID = row[4]
+                        result.append(f"""
+                                    <div class = "entry">
+                                        <h3>{postTitle}</h3>
+                                        <table>
+                                            <tr>
+                                                <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                            </tr>
+                                        </table>
+                                        <p>{postContents}</p>
+                                        <form action = "/replyHandler" method = "POST">
+                                            <button type="submit" name="reply" value={postID}>Comment</button>
+                                        </form>
+                                    </div>""")
                 else:
                     result.append("<p>No activity yet.. Start a conversation!</p>")
                 contents = ''
@@ -169,7 +451,7 @@ def handleNewPost():
                 return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
-                                            {% block newPost %}
+                                            {% block welcome %}
                                             <h2>Welcome {{name}}!</h2>
                                             <p>There was an error completing your request!</p>
                                             {% endblock %}
@@ -223,9 +505,26 @@ def getCredentials():
                     result = []
                     if (data):
                         for row in data:
-                            result.append(f"""<table><tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td></table>""")
+                            postTitle = row[0]
+                            postContents = row[1]
+                            postDate = row[2]
+                            postUsername = row[3]
+                            postID = row[4]
+                            result.append(f"""
+                                        <div class = "entry">
+                                            <h3>{postTitle}</h3>
+                                            <table>
+                                                <tr>
+                                                    <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                                </tr>
+                                            </table>
+                                            <p>{postContents}</p>
+                                            <form action = "/replyHandler" method = "POST">
+                                                <button type="submit" name="reply" value={postID}>Comment</button>
+                                            </form>
+                                        </div>""")
                     else:
-                        result.append("<p>No activity yet.. Start a conversation!</p>")
+                        result.append("<h2 id='empty'>No activity yet.. Start a conversation!</h2>")
                     contents = ''
                     for i in result:
                         contents = (i + '\n') + contents
@@ -235,7 +534,7 @@ def getCredentials():
                     return render_template_string("""
                                                 {% extends "forumMain.html" %}
                                                 
-                                                {% block newPost %}
+                                                {% block welcome %}
                                                 <h2>Welcome {{name}}!</h2>
                                                 {% endblock %}
                                                 

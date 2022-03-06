@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: rgb(51, 103, 121);
+}
+
+button {
+    margin: auto;
+    background-color: white;
+    border: 1px rgb(51, 103, 121);
+    border-style: solid;    
+    width: 100px;
+    height: 30px;
+}
+
+button:hover {
+    color: white;
+    background-color: rgb(51, 103, 121);;
+}
+
+h1, h2, h3 {
+    text-align: center;
+}
+
+#txtbox {
+    font-size: 12pt;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+#replies {
+    border-top: 1px solid gray;
+    width: 100%;
+    padding: 10px;
+}
+
+#empty {
+    text-align: center;
+    color: white;
+}
+
+.welcome h1, h2{
+    color: white;
+}
+
+.newPost h3 {
+    color: white;
+}
+
+.newPost table{
+    text-align: left;
+    margin: auto;
+    color: white;
+}
+
+.entry {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+    margin-right: 30%;
+    margin-left: 30%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    text-align: left;
+    background-color: rgb(173, 216, 230);
+    border-bottom: 1px;
+    border-color: black;
+    border-style: none;
+    border-bottom: 1px;
+}
+
+.entry button {
+    margin-bottom: 10px;
+}
+
+.content table{
+    margin: 0em;
+}
+
+.content h3, p {
+    text-align: left;
+}
+
+.content {
+    margin-left: 10%;
+    margin-right:10%;
+}
