@@ -1,5 +1,6 @@
 from logging import exception
-from flask import Flask, redirect, url_for, request, render_template, send_file
+from flask import Flask, redirect, url_for, request, render_template, send_file, session
+from flask_session import Session
 import sqlite3
 from sqlite3 import Error
 
