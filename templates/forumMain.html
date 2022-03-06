@@ -6,8 +6,34 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Skill Exchange</title>
 </head>
-  <body>
-      <h1> Welcome to the Forum! </h1>
-  </body>
+    <body>
+        <h1> Welcome to the Forum! </h1>
+    </body>
+    <div class = "newPost">
+        {% block newPost %}
+        {% endblock %}
+        <form action = "/handleNewPost" method = "POST">
+            <table>
+                <tr>
+                    <td>Join the discussion</td>
+                </tr>
+                <tr>
+                    <td>Title</td>
+                    <td><input type="text" name="title"></input></td>
+                </tr>
+                <tr>
+                    <td>Message</td>
+                    <td><input type="text" name="content"></input></td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="submit" name="post" value="mainPost">Post</button>
+                    </td>
+                </tr>
+            </table>
+    <div class = "content">
+        {% block oldPost %}
+        {% endblock %}
+    </div>
 </html>
   
