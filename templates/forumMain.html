@@ -12,6 +12,9 @@
             <h1>Welcome to your Skill Exchange!</h1>
             {% block welcome %}
             {% endblock %}
+            <form action="/refresh" method="POST">
+                <button type="submit" name="refresh" value="refreshPage">Refresh Feed</button>
+            </form>
         </div>
         <div class = "newPost">
             <form action = "/handleNewPost" method = "POST">
@@ -23,7 +26,7 @@
                     </tr>
                     <tr>
                         <td>Message</td>
-                        <td><input type="text" name="content"></input></td>
+                        <td><textarea type="text" name="content"></textarea></td>
                     </tr>
                     <tr>
                         <td>

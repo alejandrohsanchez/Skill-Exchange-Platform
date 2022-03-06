@@ -84,6 +84,16 @@ def submitReply():
                 postDate = row[2]
                 postUsername = row[3]
                 postID = row[4]
+                cur.execute(f"""
+                            SELECT
+                                COUNT(DISTINCT(r_repID))
+                            FROM
+                                replies
+                            WHERE
+                                r_id = {postID}                              
+                                """)
+                num = cur.fetchall()
+                totComments = num[0][0]
                 result.append(f"""
                             <div class = "entry">
                                 <h3>{postTitle}</h3>
@@ -93,9 +103,18 @@ def submitReply():
                                     </tr>
                                 </table>
                                 <p>{postContents}</p>
-                                <form action = "/replyHandler" method = "POST">
-                                    <button type="submit" name="reply" value={postID}>Comment</button>
-                                </form>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <form action = "/replyHandler" method = "POST">
+                                                <button type="submit" name="reply" value={postID}>Comment</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            {totComments} comment(s)
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>""")
         else:
             result.append("<p>No activity yet.. Start a conversation!</p>")
@@ -186,6 +205,17 @@ def replyHandler():
                 postUsername = row[3]
                 postID = row[4]
                 
+                cur.execute(f"""
+                            SELECT
+                                COUNT(DISTINCT(r_repID))
+                            FROM
+                                replies
+                            WHERE
+                                r_id = {postID}                              
+                                """)
+                num = cur.fetchall()
+                totComments = num[0][0]
+                
                 print(postKey+1)
                 if (postID == postKey):
                     replyString = ""
@@ -205,9 +235,18 @@ def replyHandler():
                                         </tr>
                                     </table>
                                     <p>{postContents}</p>
-                                    <form action = "/replyHandler" method = "POST">
-                                        <button type="submit" name="reply" value={postID}>Comment</button>
-                                    </form> 
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <form action = "/replyHandler" method = "POST">
+                                                    <button type="submit" name="reply" value={postID}>Comment</button>
+                                                </form>
+                                            </td>
+                                            <td>
+                                                {totComments} comment(s)
+                                            </td>
+                                        </tr>
+                                    </table> 
                                     <form action = "/submitReply" method="POST">
                                         <table>
                                             <tr>
@@ -235,9 +274,18 @@ def replyHandler():
                                         </tr>
                                     </table>
                                     <p>{postContents}</p>
-                                    <form action = "/replyHandler" method = "POST">
-                                        <button type="submit" name="reply" value={postID}>Comment</button>
-                                    </form>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <form action = "/replyHandler" method = "POST">
+                                                    <button type="submit" name="reply" value={postID}>Comment</button>
+                                                </form>
+                                            </td>
+                                            <td>
+                                                {totComments} comment(s)
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </div>""")
             contents = ""
             for i in result:
@@ -386,9 +434,18 @@ def handleNewPost():
                                             </tr>
                                         </table>
                                         <p>{postContents}</p>
-                                        <form action = "/replyHandler" method = "POST">
-                                            <button type="submit" name="reply" value={postID}>Comment</button>
-                                        </form>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <form action = "/replyHandler" method = "POST">
+                                                        <button type="submit" name="reply" value={postID}>Comment</button>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    {totComments} comment(s)
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>""")
                 else:
                     result.append("<p>No activity yet.. Start a conversation!</p>")
@@ -401,10 +458,10 @@ def handleNewPost():
                                             
                                             {% block welcome %}
                                             <h2>Welcome {{name}}!</h2>
-                                            <p>Your message has been posted.</p>
                                             {% endblock %}
                                             
                                             {% block oldPost %}
+                                            <p id='confirm'>Your message has been posted.</p>
                                             {% autoescape off %}
                                             {{string2html}}
                                             {% endautoescape %}
@@ -430,6 +487,17 @@ def handleNewPost():
                         postDate = row[2]
                         postUsername = row[3]
                         postID = row[4]
+                        
+                        cur.execute(f"""
+                                    SELECT
+                                        COUNT(DISTINCT(r_repID))
+                                    FROM
+                                        replies
+                                    WHERE
+                                        r_id = {postID}                              
+                                        """)
+                        num = cur.fetchall()
+                        totComments = num[0][0]
                         result.append(f"""
                                     <div class = "entry">
                                         <h3>{postTitle}</h3>
@@ -439,9 +507,18 @@ def handleNewPost():
                                             </tr>
                                         </table>
                                         <p>{postContents}</p>
-                                        <form action = "/replyHandler" method = "POST">
-                                            <button type="submit" name="reply" value={postID}>Comment</button>
-                                        </form>
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <form action = "/replyHandler" method = "POST">
+                                                        <button type="submit" name="reply" value={postID}>Comment</button>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    {totComments} comment(s)
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>""")
                 else:
                     result.append("<p>No activity yet.. Start a conversation!</p>")
@@ -453,10 +530,10 @@ def handleNewPost():
                                             
                                             {% block welcome %}
                                             <h2>Welcome {{name}}!</h2>
-                                            <p>There was an error completing your request!</p>
                                             {% endblock %}
                                             
                                             {% block oldPost %}
+                                            <p id='confirm'>There was an error completing your request!</p>
                                             {% autoescape off %}
                                             {{string2html}}
                                             {% endautoescape %}
@@ -510,6 +587,17 @@ def getCredentials():
                             postDate = row[2]
                             postUsername = row[3]
                             postID = row[4]
+                            
+                            cur.execute(f"""
+                                        SELECT
+                                            COUNT(DISTINCT(r_repID))
+                                        FROM
+                                            replies
+                                        WHERE
+                                            r_id = {postID}                              
+                                            """)
+                            num = cur.fetchall()
+                            totComments = num[0][0]
                             result.append(f"""
                                         <div class = "entry">
                                             <h3>{postTitle}</h3>
@@ -519,9 +607,18 @@ def getCredentials():
                                                 </tr>
                                             </table>
                                             <p>{postContents}</p>
-                                            <form action = "/replyHandler" method = "POST">
-                                                <button type="submit" name="reply" value={postID}>Comment</button>
-                                            </form>
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <form action = "/replyHandler" method = "POST">
+                                                            <button type="submit" name="reply" value={postID}>Comment</button>
+                                                        </form>
+                                                    </td>
+                                                    <td>
+                                                        {totComments} comment(s)
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </div>""")
                     else:
                         result.append("<h2 id='empty'>No activity yet.. Start a conversation!</h2>")
@@ -549,6 +646,84 @@ def getCredentials():
         
         if (method == 'register'):
             return render_template('register.html')
+@app.route('/refresh', methods = ['POST', 'GET'])
+def refresh():
+    database = r"data.sqlite"
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    cur.execute(f"""
+                SELECT
+                    p_title,
+                    p_contents,
+                    p_date,
+                    p_username,
+                    p_id
+                FROM
+                    posts
+                """)
+    data = cur.fetchall()
+    result = []
+    if (data):
+        for row in data:
+            postTitle = row[0]
+            postContents = row[1]
+            postDate = row[2]
+            postUsername = row[3]
+            postID = row[4]
+            
+            cur.execute(f"""
+                        SELECT
+                            COUNT(DISTINCT(r_repID))
+                        FROM
+                            replies
+                        WHERE
+                            r_id = {postID}                              
+                            """)
+            num = cur.fetchall()
+            totComments = num[0][0]
+            result.append(f"""
+                        <div class = "entry">
+                            <h3>{postTitle}</h3>
+                            <table>
+                                <tr>
+                                    <td><em>Author: {postUsername}</em> | <em>Date posted: {postDate}</em></td>
+                                </tr>
+                            </table>
+                            <p>{postContents}</p>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <form action = "/replyHandler" method = "POST">
+                                            <button type="submit" name="reply" value={postID}>Comment</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        {totComments} comment(s)
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>""")
+    else:
+        result.append("<h2 id='empty'>No activity yet.. Start a conversation!</h2>")
+    contents = ''
+    for i in result:
+        contents = (i + '\n') + contents
+        
+    activeUser = session.pop('nameID')
+    session['nameID'] = activeUser
+    return render_template_string("""
+                                {% extends "forumMain.html" %}
+                                
+                                {% block welcome %}
+                                <h2>Welcome {{name}}!</h2>
+                                {% endblock %}
+                                
+                                {% block oldPost %}
+                                {% autoescape off %}
+                                {{string2html}}
+                                {% endautoescape %}
+                                {% endblock %}
+                                """, string2html = contents, name = activeUser)
 
 @app.route('/', methods = ['POST', 'GET'])
 def main():

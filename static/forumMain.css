@@ -1,6 +1,8 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
-    background-color: rgb(51, 103, 121);
+    background-color: white;
+    background-image: url("back.png");
+    background-size: cover;
 }
 
 button {
@@ -14,7 +16,8 @@ button {
 
 button:hover {
     color: white;
-    background-color: rgb(51, 103, 121);;
+    background-color: rgb(51, 103, 121);
+    border-color: black;
 }
 
 h1, h2, h3 {
@@ -35,21 +38,36 @@ h1, h2, h3 {
 
 #empty {
     text-align: center;
-    color: white;
+    color: navy;
 }
 
-.welcome h1, h2{
-    color: white;
+#confirm {
+    text-align: center;
+}
+
+.welcome h1, h2, p {
+    color: navy;
+    text-align: center;
+}
+
+.welcome {
+    align-items: center;
+    margin: auto;
+}
+
+.welcome button {
+    margin:0 auto;
+    display:block;
 }
 
 .newPost h3 {
-    color: white;
+    color: navy;
 }
 
 .newPost table{
     text-align: left;
     margin: auto;
-    color: white;
+    color: navy;
 }
 
 .entry {
@@ -67,10 +85,15 @@ h1, h2, h3 {
     border-color: black;
     border-style: none;
     border-bottom: 1px;
+    border-radius: 20px;
 }
 
 .entry button {
     margin-bottom: 10px;
+}
+
+.entry p {
+    color: black;
 }
 
 .content table{
