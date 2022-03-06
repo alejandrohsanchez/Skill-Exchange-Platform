@@ -8,6 +8,7 @@ from flask.templating import render_template_string
 
 import sys
 app = Flask(__name__)
+app.secret_key = 'privateUser'
 
 @app.route('/login-verify', methods = ['POST', 'GET'])
 def getCredentials():
@@ -38,8 +39,8 @@ def getCredentials():
             data = cur.fetchall()
             if (data):
                 if (username == data[0][0] and password == data[0][1]):
-                    session[f'{nameID}'] = username
-                    session[f'{passID}'] = password
+                    session['nameID'] = username
+                    session['passID'] = password
                     return render_template('forumMain.html')
             else:
                 return render_template('login.html')
@@ -49,4 +50,5 @@ def main():
     return render_template('login.html')
 
 if __name__ == '__main__':
-   app.run(debug = True)
+    app.run(debug = True)
+    
