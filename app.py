@@ -10,6 +10,34 @@ import sys
 app = Flask(__name__)
 app.secret_key = 'privateUser'
 
+@app.route('/deletePost', methods = ['POST', 'GET'])
+def deletePost():
+    if (request.method == 'POST'):
+        method = request.form['delete']
+        activeUser = method
+        postID = session.pop('postID')
+        database = r"data.sqlite"
+        conn = sqlite3.connect(database)
+        cur = conn.cursor()
+        # Delete the post
+        cur.execute(f"""
+                    DELETE FROM posts
+                    WHERE   
+                        p_id = {postID} AND
+                        p_username = "{activeUser}"
+                    """)
+        conn.commit()
+        
+        # Now delete the replies associated with this post
+        cur.execute(f"""
+                    DELETE FROM replies
+                    WHERE
+                        r_id = {postID}
+                    """)
+        conn.commit()
+        return redirect("/refresh")
+        
+
 @app.route('/submitReply', methods = ['POST', 'GET'])
 def submitReply():
     if (request.method == 'POST'):
@@ -62,9 +90,6 @@ def submitReply():
                     VALUES ("{entry}", "{todaysDate}", "{postUsername}", "{postID}", "{newID}");
                     """)
         conn.commit()
-        
-        
-        
         cur.execute(f"""
                     SELECT
                         p_title,
@@ -94,6 +119,16 @@ def submitReply():
                                 """)
                 num = cur.fetchall()
                 totComments = num[0][0]
+                session['postID'] = postID
+                activeUser = session.pop('nameID')
+                session['nameID'] = activeUser
+                deleteString = ""
+                if (activeUser == postUsername):
+                    deleteString = f"""
+                                    <form action = "/deletePost" method = "POST">
+                                        <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                    </form>
+                                    """
                 result.append(f"""
                             <div class = "entry">
                                 <h3>{postTitle}</h3>
@@ -113,6 +148,9 @@ def submitReply():
                                         <td>
                                             {totComments} comment(s)
                                         </td>
+                                    </tr>
+                                    <tr>
+                                        <td>{deleteString}</td>
                                     </tr>
                                 </table>
                             </div>""")
@@ -215,8 +253,8 @@ def replyHandler():
                                 """)
                 num = cur.fetchall()
                 totComments = num[0][0]
-                
-                print(postKey+1)
+                session['postID'] = postID
+                deleteString = ""
                 if (postID == postKey):
                     replyString = ""
                     # Get the replies into a string with the newest tables in front
@@ -225,6 +263,14 @@ def replyHandler():
                         # Div is to ensure that the comments are wrapped as part of the post.
                     replyString += "</div>"
                     
+                    activeUser = session.pop('nameID')
+                    session['nameID'] = activeUser
+                    if (activeUser == postUsername):
+                        deleteString = f"""
+                                        <form action = "/deletePost" method = "POST">
+                                            <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                        </form>
+                                        """
                     # Collect the post into a string
                     post2append =f"""
                                 <div class = "entry">
@@ -246,6 +292,9 @@ def replyHandler():
                                                 {totComments} comment(s)
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>{deleteString}</td>
+                                        </tr>
                                     </table> 
                                     <form action = "/submitReply" method="POST">
                                         <table>
@@ -265,6 +314,14 @@ def replyHandler():
                     result.append(post2append)
                     
                 else:
+                    activeUser = session.pop('nameID')
+                    session['nameID'] = activeUser
+                    if (activeUser == postUsername):
+                        deleteString = f"""
+                                        <form action = "/deletePost" method = "POST">
+                                            <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                        </form>
+                                        """
                     result.append(f"""
                                 <div class = "entry">
                                     <h3>{postTitle}</h3>
@@ -284,6 +341,9 @@ def replyHandler():
                                             <td>
                                                 {totComments} comment(s)
                                             </td>
+                                        </tr>
+                                        <tr>
+                                            <td>{deleteString}</td>
                                         </tr>
                                     </table>
                                 </div>""")
@@ -306,7 +366,6 @@ def replyHandler():
                                             {% endblock %}
                                             """, string2html = contents, name = activeUser)
             
-
 @app.route('/createUser', methods = ['POST', 'GET'])
 def createUser():
     if (request.method == 'POST'):
@@ -354,7 +413,6 @@ def createUser():
                     conn.commit()
                     return render_template("login.html")
                 
-
 @app.route('/handleNewPost', methods = ['POST', 'GET'])
 def handleNewPost():
     todaysDate = date.today()
@@ -436,7 +494,16 @@ def handleNewPost():
                                         """)
                         num = cur.fetchall()
                         totComments = num[0][0]
-                        
+                        session['postID'] = postID
+                        activeUser = session.pop('nameID')
+                        session['nameID'] = activeUser
+                        deleteString = ""
+                        if (activeUser == postUsername):
+                            deleteString = f"""
+                                <form action = "/deletePost" method = "POST">
+                                    <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                </form>
+                                """
                         result.append(f"""
                                     <div class = "entry">
                                         <h3>{postTitle}</h3>
@@ -456,6 +523,9 @@ def handleNewPost():
                                                 <td>
                                                     {totComments} comment(s)
                                                 </td>
+                                            </tr>   
+                                            <tr>
+                                                <td>{deleteString}</td>
                                             </tr>
                                         </table>
                                     </div>""")
@@ -511,6 +581,16 @@ def handleNewPost():
                                         """)
                         num = cur.fetchall()
                         totComments = num[0][0]
+                        session['postID'] = postID
+                        deleteString = ""
+                        activeUser = session.pop('nameID')
+                        session['nameID'] = activeUser
+                        if (activeUser == postUsername):
+                            deleteString = f"""
+                                            <form action = "/deletePost" method = "POST">
+                                                <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                            </form>
+                                            """
                         result.append(f"""
                                     <div class = "entry">
                                         <h3>{postTitle}</h3>
@@ -538,8 +618,6 @@ def handleNewPost():
                 contents = ''
                 for i in result:
                     contents = (i + '\n') + contents
-                activeUser = session.pop('nameID')
-                session['nameID'] = activeUser
                 return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
@@ -555,7 +633,6 @@ def handleNewPost():
                                             {% endblock %}
                                             """, string2html = contents, name = activeUser)
             
-
 @app.route('/login-verify', methods = ['POST', 'GET'])
 def getCredentials():
     if (request.method == 'POST'):
@@ -595,6 +672,8 @@ def getCredentials():
                                 """)
                     data = cur.fetchall()
                     result = []
+                    activeUser = session.pop('nameID')
+                    session['nameID'] = activeUser
                     if (data):
                         for row in data:
                             postTitle = row[0]
@@ -602,7 +681,6 @@ def getCredentials():
                             postDate = row[2]
                             postUsername = row[3]
                             postID = row[4]
-                            
                             cur.execute(f"""
                                         SELECT
                                             COUNT(DISTINCT(r_repID))
@@ -613,6 +691,14 @@ def getCredentials():
                                             """)
                             num = cur.fetchall()
                             totComments = num[0][0]
+                            session['postID'] = postID
+                            deleteString = ""
+                            if (activeUser == postUsername):
+                                deleteString = f"""
+                                                <form action = "/deletePost" method = "POST">
+                                                    <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                                </form>
+                                                """
                             result.append(f"""
                                         <div class = "entry">
                                             <h3>{postTitle}</h3>
@@ -633,6 +719,9 @@ def getCredentials():
                                                         {totComments} comment(s)
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <td>{deleteString}</td>
+                                                </tr>
                                             </table>
                                         </div>""")
                     else:
@@ -640,9 +729,6 @@ def getCredentials():
                     contents = ''
                     for i in result:
                         contents = (i + '\n') + contents
-                        
-                    activeUser = session.pop('nameID')
-                    session['nameID'] = activeUser
                     return render_template_string("""
                                                 {% extends "forumMain.html" %}
                                                 
@@ -678,6 +764,8 @@ def refresh():
                 """)
     data = cur.fetchall()
     result = []
+    activeUser = session.pop('nameID')
+    session['nameID'] = activeUser
     if (data):
         for row in data:
             postTitle = row[0]
@@ -685,7 +773,7 @@ def refresh():
             postDate = row[2]
             postUsername = row[3]
             postID = row[4]
-            
+            session['postID'] = postID
             cur.execute(f"""
                         SELECT
                             COUNT(DISTINCT(r_repID))
@@ -696,6 +784,13 @@ def refresh():
                             """)
             num = cur.fetchall()
             totComments = num[0][0]
+            deleteString = ""
+            if (activeUser == postUsername):
+                deleteString = f"""
+                                <form action = "/deletePost" method = "POST">
+                                    <button type="submit" name="delete" value={activeUser}>Delete Post</button>
+                                </form>
+                                """
             result.append(f"""
                         <div class = "entry">
                             <h3>{postTitle}</h3>
@@ -716,6 +811,9 @@ def refresh():
                                         {totComments} comment(s)
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>{deleteString}</td>
+                                </tr>
                             </table>
                         </div>""")
     else:
@@ -723,9 +821,6 @@ def refresh():
     contents = ''
     for i in result:
         contents = (i + '\n') + contents
-        
-    activeUser = session.pop('nameID')
-    session['nameID'] = activeUser
     return render_template_string("""
                                 {% extends "forumMain.html" %}
                                 
