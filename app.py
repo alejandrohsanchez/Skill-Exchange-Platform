@@ -290,7 +290,8 @@ def replyHandler():
             contents = ""
             for i in result:
                 contents = (i + "\n") + contents
-            
+            activeUser = session.pop('nameID')
+            session['nameID'] = activeUser
             return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
@@ -303,7 +304,7 @@ def replyHandler():
                                             {{string2html}}
                                             {% endautoescape %}
                                             {% endblock %}
-                                            """, string2html = contents, name = postUsername)
+                                            """, string2html = contents, name = activeUser)
             
 
 @app.route('/createUser', methods = ['POST', 'GET'])
@@ -425,6 +426,17 @@ def handleNewPost():
                         postDate = row[2]
                         postUsername = row[3]
                         postID = row[4]
+                        cur.execute(f"""
+                                    SELECT
+                                        COUNT(DISTINCT(r_repID))
+                                    FROM
+                                        replies
+                                    WHERE
+                                        r_id = {postID}                              
+                                        """)
+                        num = cur.fetchall()
+                        totComments = num[0][0]
+                        
                         result.append(f"""
                                     <div class = "entry">
                                         <h3>{postTitle}</h3>
@@ -452,7 +464,8 @@ def handleNewPost():
                 contents = ''
                 for i in result:
                     contents = (i + '\n') + contents
-                
+                activeUser = session.pop('nameID')
+                session['nameID'] = activeUser
                 return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
@@ -466,7 +479,7 @@ def handleNewPost():
                                             {{string2html}}
                                             {% endautoescape %}
                                             {% endblock %}
-                                            """, string2html = contents, name = postUsername)
+                                            """, string2html = contents, name = activeUser)
             elif (status == "Failed"):
                 cur.execute(f"""
                         SELECT
@@ -525,6 +538,8 @@ def handleNewPost():
                 contents = ''
                 for i in result:
                     contents = (i + '\n') + contents
+                activeUser = session.pop('nameID')
+                session['nameID'] = activeUser
                 return render_template_string("""
                                             {% extends "forumMain.html" %}
                                             
@@ -538,7 +553,7 @@ def handleNewPost():
                                             {{string2html}}
                                             {% endautoescape %}
                                             {% endblock %}
-                                            """, string2html = contents, name = postUsername)
+                                            """, string2html = contents, name = activeUser)
             
 
 @app.route('/login-verify', methods = ['POST', 'GET'])
