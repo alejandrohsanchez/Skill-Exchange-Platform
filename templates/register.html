@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Skill Exchange</title>
+</head>
+<body>
+    <div>
+        {% block warning %}
+        {% endblock %}
+    </div>
+    <div class = "entries">
+        <form action = "/createUser" method = "POST">
+            <table>
+                <tr>
+                    <td>Email</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="email"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Username</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="username"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="text" name="password"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Confirm Password</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type = "text" name = "confirmPassword"></input>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type = "submit" name = "submit" value ="back">Back to Login</button>
+                    </td>
+                    <td>
+                        <button type = "submit" name = "submit" value ="register">Register</button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</body>
+</html>
