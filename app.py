@@ -23,8 +23,7 @@ def deletePost():
         cur.execute(f"""
                     DELETE FROM posts
                     WHERE   
-                        p_id = {postID} AND
-                        p_username = "{activeUser}"
+                        p_id = {postID}
                     """)
         conn.commit()
         
